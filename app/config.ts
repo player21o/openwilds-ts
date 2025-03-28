@@ -1,6 +1,6 @@
 //this is a config
 
-export = {
+export default {
   lobby: {
     port: 8080, //the *localhost* port for lobby
   },
