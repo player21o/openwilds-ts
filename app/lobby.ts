@@ -24,6 +24,17 @@ export class LobbyServer {
           case "ask":
             if (data[1].question == "captcha")
               answer(["response", { request_id: data[1].request_id }]); // no captcha lol
+            break;
+          case "play":
+            answer([
+              "game_ready",
+              {
+                mode: data[1].mode,
+                seat_id: "no_idea_what_is_it_lol",
+                url: config.game.url,
+              },
+            ]);
+            break;
         }
       });
     });
