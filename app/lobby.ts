@@ -1,5 +1,5 @@
-import { WebSocketServer } from "ws";
 import config from "./config";
+import { App } from "uWebSockets.js";
 
 type Packet =
   | ["set_location", string]
@@ -9,35 +9,34 @@ type Packet =
   | ["play", { noob: boolean; mode: "fun"; mmtag: string; location: string }];
 
 export class LobbyServer {
-  private wss = new WebSocketServer({ port: config.lobby.port });
-
   public constructor() {
-    this.wss.on("listening", () => console.log("started lobby server"));
+    App({})
+      .ws("/*", {
+        message: (ws, message, _) => {
+          const answer = (data: any) => ws.send(JSON.stringify(data));
+          const data = JSON.parse(
+            new TextDecoder("utf-8").decode(message) as any
+          ) as Packet;
 
-    this.wss.on("connection", (ws) => {
-      const answer = (data: any) => ws.send(JSON.stringify(data));
-
-      ws.on("message", (data: Packet) => {
-        data = JSON.parse(data as any) as Packet;
-
-        switch (data[0]) {
-          case "ask":
-            if (data[1].question == "captcha")
-              answer(["response", { request_id: data[1].request_id }]); // no captcha lol
-            break;
-          case "play":
-            answer([
-              "game_ready",
-              {
-                mode: data[1].mode,
-                seat_id: "no_idea_what_is_it_lol",
-                url: config.game.url,
-              },
-            ]);
-            break;
-        }
-      });
-    });
+          switch (data[0]) {
+            case "ask":
+              if (data[1].question == "captcha")
+                answer(["response", { request_id: data[1].request_id }]); // no captcha lol
+              break;
+            case "play":
+              answer([
+                "game_ready",
+                {
+                  mode: data[1].mode,
+                  seat_id: "no_idea_what_is_it_lol",
+                  url: config.game.url,
+                },
+              ]);
+              break;
+          }
+        },
+      })
+      .listen(config.lobby.port, () => {});
   }
 }
 

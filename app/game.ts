@@ -1,18 +1,16 @@
-import { WebSocketServer } from "ws";
 import { decode } from "@msgpack/msgpack";
+import { App } from "uWebSockets.js";
 
 export class GameServer {
-  private wss: WebSocketServer;
-
   constructor(port: number) {
     //for scalability, we don't hardcode port
-    this.wss = new WebSocketServer({ port: port });
-
-    this.wss.on("connection", (ws) => {
-      ws.on("message", (msg: Uint8Array) => {
-        const packet = decode(msg);
-        console.log(packet);
-      });
-    });
+    App({})
+      .ws("/*", {
+        message: (_, msg) => {
+          const packet = decode(msg);
+          console.log(packet);
+        },
+      })
+      .listen(port, () => {});
   }
 }
